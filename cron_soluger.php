@@ -1,6 +1,6 @@
 <?php
 
-$apiUrl = "https://maisonetappartments.onrender.com/run";
+$apiUrl = "https://soluger.onrender.com/run";
 
 $data = [
     "source_url" => "https://manda.propertybase.com/api/v2/feed/00DWx000007hlhBMAQ/XML2U/a0hSb000005gPOwIAM/full",
