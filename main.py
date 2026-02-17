@@ -480,7 +480,7 @@ def run_pipeline():
 # port : 990
 
   try:
-      ftp = FTP(FTP_HOST, timeout=30)
+      ftp = FTP(FTP_HOST, 990, timeout=30)
       ftp.login(FTP_USER, FTP_PASS)
 
       print("Connected to FTP")
