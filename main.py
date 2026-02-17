@@ -466,34 +466,76 @@ def run_pipeline():
   # =========================================================
   # STEP 6 — FTP UPLOAD
   # =========================================================
+  # =========================================================
+  # STEP 6 — FTP UPLOAD
+  # =========================================================
+  # =========================================================
+  # STEP 6 — FTP UPLOAD (implicit FTPS 990)
+  # =========================================================
 
-  from ftplib import FTP
-
-  print("\n=== STEP 6: FTP UPLOAD ===")
+  from ftplib import FTP_TLS
+  import socket
+  import ssl
 
   FTP_HOST = "transferts.seloger.com"
   FTP_USER = "Propertybase"
-  FTP_PASS = "4iWJUPqs+"
-# host : ftps://
-# login : 
-# mot de passe : 
-# port : 990
+  FTP_PASS = "4iWJUPqs"
+
+
+  class ImplicitFTP_TLS(FTP_TLS):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # legacy-compatible TLS context
+        self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        self.context.check_hostname = False
+        self.context.verify_mode = ssl.CERT_NONE
+        self.context.set_ciphers('DEFAULT:@SECLEVEL=1')
+
+    def connect(self, host='', port=0, timeout=None):
+        self.host = host
+        self.port = port
+
+        raw_sock = socket.create_connection((host, port), timeout)
+        self.sock = self.context.wrap_socket(raw_sock, server_hostname=host)
+
+        self.af = self.sock.family
+        self.file = self.sock.makefile('r', encoding=self.encoding)
+
+        self.welcome = self.getresp()
+        return self.welcome
+
+  print("Connecting implicit FTPS...")
+
+  ftp = ImplicitFTP_TLS()
+  ftp.connect(FTP_HOST, 990)
+  ftp.login(FTP_USER, FTP_PASS)
+  ftp.prot_p()
+
+#   print("Connected! Uploading...")
+
+#   with open(ZIP_NAME, "rb") as f:
+#       ftp.storbinary(f"STOR {ZIP_NAME}", f)
+
+#   ftp.quit()
+
+#   print(f"✅ Uploaded {ZIP_NAME} successfully")
+  print("Uploading...")
+
+  with open(ZIP_NAME, "rb") as f:
+    try:
+        ftp.storbinary(f"STOR {ZIP_NAME}", f)
+    except ssl.SSLEOFError:
+        # server closes TLS badly after transfer — ignore
+        print("⚠️ TLS EOF after upload (safe to ignore)")
 
   try:
-      ftp = FTP(FTP_HOST, 990, timeout=30)
-      ftp.login(FTP_USER, FTP_PASS)
+    ftp.quit()
+  except:
+    pass
 
-      print("Connected to FTP")
+  print(f"✅ Upload completed: {ZIP_NAME}")
 
-      with open(ZIP_NAME, "rb") as f:
-          ftp.storbinary(f"STOR {ZIP_NAME}", f)
-
-      ftp.quit()
-
-      print(f"✅ Uploaded {ZIP_NAME} to FTP successfully")
-
-  except Exception as e:
-      print("❌ FTP upload failed:", e)
 
 if __name__ == "__main__":
     run_pipeline()
