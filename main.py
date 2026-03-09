@@ -16,7 +16,7 @@ def run_pipeline():
   AGENCY_ID = "RC-1577371"
   SOURCE_URL = "https://manda.propertybase.com/api/v2/feed/00DWx000007hlhBMAQ/XML2U/a0hSb000005gPOwIAM/full"
 
-  RULE_FILE = "Poliris CSV Mapping.xlsx"
+  RULE_FILE = "Poliris CSV Mapping-3.xlsx"
   MAP_FILE = "xml_map.json"
 
   CSV_NAME = "scan.csv"
@@ -216,6 +216,7 @@ def run_pipeline():
 
   for listing in listings:
       row = [""] * 334
+      row[0] = wrap(AGENCY_ID)
 
       for rank, xls_path, t in FIELDS:
 
